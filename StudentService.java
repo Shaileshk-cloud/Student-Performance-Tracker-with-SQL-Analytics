@@ -3,7 +3,7 @@ import java.util.*;
 
 public class StudentService {
     public boolean insertStudent(int id, String name, String className) {
-        String query = "INSERT INTO Students (student_id, name, class) VALUES (?, ?, ?)";
+        String query = "INSERT INTO Students (student_id, name, class_name) VALUES (?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, id);
@@ -65,7 +65,7 @@ public class StudentService {
 
     public List<String[]> getAllStudents() {
         List<String[]> list = new ArrayList<>();
-        String query = "SELECT * FROM Students";
+        String query = "SELECT student_id, name, class_name FROM Students";
         try (Connection conn = DBConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -73,7 +73,7 @@ public class StudentService {
                 list.add(new String[]{
                         String.valueOf(rs.getInt("student_id")),
                         rs.getString("name"),
-                        rs.getString("class")
+                        rs.getString("class_name")
                 });
             }
         } catch (Exception e) {
