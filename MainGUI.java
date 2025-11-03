@@ -8,9 +8,12 @@ public class MainGUI extends JFrame {
     private StudentService studentService;
     private AnalyticsService analyticsService;
 
+    private JComboBox<String> rankTypeCombo; // "Overall" or "Subject"
+    private JComboBox<String> subjectCombo;  // subject list values like "id:name"
+
     public MainGUI() {
         setTitle("Comprehensive Student Analytics System");
-        setSize(800, 600);
+        setSize(900, 650);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -63,11 +66,43 @@ public class MainGUI extends JFrame {
     private JPanel createAnalyticsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         rankTable = new JTable();
+
+        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        rankTypeCombo = new JComboBox<>(new String[] {"Overall", "Subject"});
+        subjectCombo = new JComboBox<>();
+        subjectCombo.setEnabled(false); // enabled only when subject selected
+
         JButton loadBtn = new JButton("Load Rankings");
+
+        top.add(new JLabel("Rank Type:"));
+        top.add(rankTypeCombo);
+        top.add(new JLabel("  Subject:"));
+        top.add(subjectCombo);
+        top.add(loadBtn);
+
+        // Populate subject list
+        loadSubjectsIntoCombo();
+
+        rankTypeCombo.addActionListener(e -> {
+            boolean subjectMode = "Subject".equals(rankTypeCombo.getSelectedItem());
+            subjectCombo.setEnabled(subjectMode);
+        });
+
         loadBtn.addActionListener(e -> loadRankings());
-        panel.add(loadBtn, BorderLayout.NORTH);
+
+        panel.add(top, BorderLayout.NORTH);
         panel.add(new JScrollPane(rankTable), BorderLayout.CENTER);
         return panel;
+    }
+
+    private void loadSubjectsIntoCombo() {
+        subjectCombo.removeAllItems();
+        List<String[]> subs = analyticsService.getAllSubjects();
+        subjectCombo.addItem("-- Select --");
+        for (String[] s : subs) {
+            // store as "id:name" for easy parsing
+            subjectCombo.addItem(s[0] + ":" + s[1]);
+        }
     }
 
     private JPanel createMarksPanel() {
@@ -154,10 +189,25 @@ public class MainGUI extends JFrame {
     }
 
     private void loadRankings() {
-        List<String[]> data = analyticsService.getStudentRanks();
-        String[] cols = {"Student ID", "Name", "Total Marks", "Rank"};
-        DefaultTableModel model = new DefaultTableModel(cols, 0);
-        for (String[] row : data) model.addRow(row);
+        String type = (String) rankTypeCombo.getSelectedItem();
+        DefaultTableModel model;
+        if ("Subject".equals(type)) {
+            String chosen = (String) subjectCombo.getSelectedItem();
+            if (chosen == null || chosen.equals("-- Select --")) {
+                JOptionPane.showMessageDialog(this, "Please select a subject.");
+                return;
+            }
+            int subjectId = Integer.parseInt(chosen.split(":",2)[0]);
+            List<String[]> data = analyticsService.getSubjectRanks(subjectId);
+            String[] cols = {"Subject ID", "Subject", "Student ID", "Student", "Marks", "Subject Rank"};
+            model = new DefaultTableModel(cols, 0);
+            for (String[] row : data) model.addRow(row);
+        } else {
+            List<String[]> data = analyticsService.getStudentTotalRanks();
+            String[] cols = {"Student ID", "Name", "Total Marks", "Total Rank"};
+            model = new DefaultTableModel(cols, 0);
+            for (String[] row : data) model.addRow(row);
+        }
         rankTable.setModel(model);
     }
 }
