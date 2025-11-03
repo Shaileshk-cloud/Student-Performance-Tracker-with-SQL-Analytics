@@ -1,31 +1,32 @@
 -- ======================================================
--- STUDENT PERFORMANCE ANALYTICS (Simplified Schema)
--- Two Views: Total-wise Rank & Subject-wise Rank
+-- STUDENT PERFORMANCE ANALYTICS (Two Views Only)
+-- Tables: Students, Subjects, Marks
+-- Views: student_total_rank, subject_ranks
 -- ======================================================
 
 DROP DATABASE IF EXISTS student_performance;
 CREATE DATABASE student_performance;
 USE student_performance;
 
--- -------------------------------
+-- -------------------------------------
 -- 1️⃣ TABLE: Students
--- -------------------------------
+-- -------------------------------------
 CREATE TABLE Students (
   student_id INT PRIMARY KEY AUTO_INCREMENT,
   name VARCHAR(100) NOT NULL
 );
 
--- -------------------------------
+-- -------------------------------------
 -- 2️⃣ TABLE: Subjects
--- -------------------------------
+-- -------------------------------------
 CREATE TABLE Subjects (
   subject_id INT PRIMARY KEY AUTO_INCREMENT,
   subject_name VARCHAR(50) NOT NULL
 );
 
--- -------------------------------
+-- -------------------------------------
 -- 3️⃣ TABLE: Marks
--- -------------------------------
+-- -------------------------------------
 CREATE TABLE Marks (
   mark_id INT PRIMARY KEY AUTO_INCREMENT,
   student_id INT NOT NULL,
@@ -35,9 +36,9 @@ CREATE TABLE Marks (
   FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id) ON DELETE CASCADE
 );
 
--- -------------------------------
+-- -------------------------------------
 -- 4️⃣ SAMPLE DATA
--- -------------------------------
+-- -------------------------------------
 INSERT INTO Students (name) VALUES
 ('Asha'),
 ('Ravi'),
@@ -59,7 +60,7 @@ INSERT INTO Marks (student_id, subject_id, marks_obtained) VALUES
 
 -- ======================================================
 -- 5️⃣ VIEW 1: student_total_rank
---    Calculates total marks and rank (DENSE_RANK)
+-- Calculates total marks and DENSE_RANK across all students
 -- ======================================================
 CREATE OR REPLACE VIEW student_total_rank AS
 SELECT
@@ -73,7 +74,7 @@ GROUP BY s.student_id, s.name;
 
 -- ======================================================
 -- 6️⃣ VIEW 2: subject_ranks
---    Calculates subject-wise ranks (DENSE_RANK per subject)
+-- Calculates subject-wise rank for each student using DENSE_RANK()
 -- ======================================================
 CREATE OR REPLACE VIEW subject_ranks AS
 SELECT
@@ -93,9 +94,8 @@ JOIN Subjects sub ON m.subject_id = sub.subject_id;
 -- ======================================================
 -- 7️⃣ TEST QUERIES
 -- ======================================================
-
--- Overall total marks and rank
+-- To view total marks and overall rank:
 -- SELECT * FROM student_total_rank ORDER BY total_rank;
 
--- Subject-wise ranks
+-- To view subject-wise ranks:
 -- SELECT * FROM subject_ranks ORDER BY subject_name, subject_rank;
