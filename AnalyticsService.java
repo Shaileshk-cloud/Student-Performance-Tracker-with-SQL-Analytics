@@ -6,7 +6,7 @@ public class AnalyticsService {
         List<String[]> list = new ArrayList<>();
         String query = """
                 SELECT student_id, name, total_marks,
-                       RANK() OVER (ORDER BY total_marks DESC) AS rank
+                       DENSE_RANK() OVER (ORDER BY total_marks DESC) AS rank
                 FROM (
                     SELECT s.student_id, s.name, SUM(m.marks_obtained) AS total_marks
                     FROM Students s
@@ -32,3 +32,4 @@ public class AnalyticsService {
         return list;
     }
 }
+
